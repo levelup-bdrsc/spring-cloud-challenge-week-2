@@ -5,6 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+
 import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,6 +19,7 @@ class PagamentoController {
 	private PagamentoRepository pagamentoRepo;
 	private PedidoClienteComFeign pedidoCliente;
 
+	@HystrixCommand(threadPoolKey = "listaThreadPool")
 	@GetMapping
 	ResponseEntity<List<PagamentoDto>> lista() {
 		return ResponseEntity.ok(pagamentoRepo.findAll()
@@ -40,11 +43,20 @@ class PagamentoController {
 		return ResponseEntity.created(path).body(new PagamentoDto(salvo));
 	}
 
+	@HystrixCommand(fallbackMethod = "confirmaFallback", threadPoolKey = "confirmaThreadPool")
 	@PutMapping("/{id}")
 	PagamentoDto confirma(@PathVariable("id") Long id) {
 		Pagamento pagamento = pagamentoRepo.findById(id).orElseThrow(ResourceNotFoundException::new);
 		pagamento.setStatus(Pagamento.Status.CONFIRMADO);
 		pedidoCliente.notificaServicoDePedidoParaMudarStatus(pagamento.getPedidoId(), new MudancaDeStatusDoPedido("pago"));
+		pagamentoRepo.save(pagamento);
+		return new PagamentoDto(pagamento);
+	}
+	
+	PagamentoDto confirmaFallback(Long id) {
+		System.out.println(id);
+		Pagamento pagamento = pagamentoRepo.findById(id).orElseThrow(ResourceNotFoundException::new);
+		pagamento.setStatus(Pagamento.Status.PROCESSANDO);
 		pagamentoRepo.save(pagamento);
 		return new PagamentoDto(pagamento);
 	}
