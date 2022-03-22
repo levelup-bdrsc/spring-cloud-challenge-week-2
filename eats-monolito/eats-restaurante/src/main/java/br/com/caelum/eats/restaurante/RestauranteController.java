@@ -49,12 +49,12 @@ class RestauranteController {
 		return restauranteSalvo;
 	}
 
-  @PutMapping("/parceiros/restaurantes/{id}")
-  public RestauranteDto atualiza(@PathVariable Long id, @RequestBody RestauranteDto restaurante) {
-    Restaurante doBD = restauranteRepo.getOne(id);
-    restaurante.populaRestaurante(doBD);
-    return new RestauranteDto(restauranteRepo.save(doBD));
-  }
+	@PutMapping("/parceiros/restaurantes/{id}")
+	public RestauranteDto atualiza(@PathVariable Long id, @RequestBody RestauranteDto restaurante) {
+	    Restaurante doBD = restauranteRepo.getOne(id);
+	    restaurante.populaRestaurante(doBD);
+	    return new RestauranteDto(restauranteRepo.save(doBD));
+	}
 
 
   @GetMapping("/admin/restaurantes/em-aprovacao")
