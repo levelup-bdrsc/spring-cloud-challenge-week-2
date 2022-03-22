@@ -26,6 +26,7 @@ class Pagamento {
 
 	public static enum Status {
 		CRIADO,
+		PROCESSANDO,
 		CONFIRMADO,
 		CANCELADO;
 	}
